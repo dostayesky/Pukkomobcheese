@@ -77,9 +77,6 @@ exports.addBooking=async (req,res,next)=>{
             return res.status(404).json({success:false, message: `No provider with the id of ${req.params.providerId}`});
         }
 
-        if(provider.carAvaliable == 0){
-            return res.status(404).json({success:false, message: "No cars available for rent at the moment"});
-        }
 
         //add user Id to req.body
         req.body.user=req.user.id;
@@ -91,9 +88,12 @@ exports.addBooking=async (req,res,next)=>{
         if(existedBookings.length >= 3 && req.user.role !== 'admin'){
             return res.status(400).json({success:false, message: `The user with ID ${req.user.id} has already made 3 bookings`});
         }
+        if(provider.carAvaliable == 0){
+            return res.status(404).json({success:false, message: "No cars available for rent at the moment"});
+        }
 
         const booking = await Booking.create(req.body);
-
+        updateAvaibleCar(req.params.providerId,-1);
         res.status(200).json({
             success: true,
             data: booking
@@ -150,7 +150,7 @@ exports.deleteBooking=async (req,res,next) => {
         if(booking.user.toString() !== req.user.id && req.user.role !== 'admin'){
             return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to delete this booking`});
         }
-        const oneDayInMs = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const oneDayInMs = 1;//24 * 60 * 60 * 1000; // 1 day in milliseconds
         const isLessThanOneDay = Date.now() - new Date(booking.createdAt).getTime() < oneDayInMs;
         let fee =  0;
         if (isLessThanOneDay) {
@@ -159,8 +159,9 @@ exports.deleteBooking=async (req,res,next) => {
             fee = 200;
             console.log("More than 1 day has passed.");
         }
+        updateAvaibleCar(booking.provider,1);
         await booking.deleteOne();
-
+        
         res.status(200).json({
             success:true,
             data:{},
@@ -171,3 +172,10 @@ exports.deleteBooking=async (req,res,next) => {
         return res.status(500).json({success:false, message:"Cannot delete Booking"});
     }
 };
+
+updateAvaibleCar = async(provider_id,amount) => {
+    let {carAvaliable} = await Provider.findById(provider_id);
+    carAvaliable += amount;
+    await Provider.findByIdAndUpdate(provider_id,{carAvaliable});
+    return;
+}
