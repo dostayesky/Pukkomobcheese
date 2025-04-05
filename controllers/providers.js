@@ -76,16 +76,21 @@ exports.getProviders= async (req,res,next) => {
     }
 };
 
-// //@desc Create Provider
-// //@route POST 
-// //@access Private
-// exports.createHospital= async (req,res,next) => {
-//     const provider = await Provider.create(req.body);
-//     res.status(201).json({
-//         success:true, 
-//         data:provider
-//     });
-// };
+//@desc Create Provider
+//@route POST 
+//@access Private
+exports.createProvider= async (req,res,next) => {
+    try{
+        const provider = await Provider.create(req.body);
+        res.status(201).json({
+            success:true, 
+            data:provider
+        });
+    } catch(err){
+        res.status(400).json({success:false});
+        console.log(err.stack);
+    }
+};
 
 // //@desc Delete single hospitals
 // //@route DELETE /api/v1/hospitals/:id
