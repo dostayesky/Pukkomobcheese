@@ -92,6 +92,24 @@ exports.createProvider= async (req,res,next) => {
     }
 };
 
+//@desc Update Provider
+//@route PUT /api/v1/providers/:id
+//@access Private
+exports.updateProvider=async (req,res,next) => {
+    try{
+        const provider = await Provider.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+        if(!provider){
+            return res.status(400).json({success:false});
+        }
+        res.status(200).json({success:true, data: provider});
+    } catch(err){
+        res.status(400).json({success:false});
+    }
+};
+
 //@desc Delete Provider
 //@route DELETE /api/v1/providers/:id
 //@access Private

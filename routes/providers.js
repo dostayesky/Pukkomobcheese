@@ -1,5 +1,5 @@
 const express=require('express');
-const {getProviders,createProvider,deleteProvider} = require('../controllers/providers');
+const {getProviders,createProvider,updateProvider,deleteProvider} = require('../controllers/providers');
 
 //Include other resource routers
 const bookingRouter=require('./bookings');
@@ -10,6 +10,6 @@ const router=express.Router();
 router.use('/:providerId/bookings/',bookingRouter);
 
 router.route('/').get(getProviders).post(createProvider); // not auth for create yet
-router.route('/:id').delete(deleteProvider);
+router.route('/:id').put(updateProvider).delete(deleteProvider);
 
 module.exports=router;
