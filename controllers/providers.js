@@ -92,20 +92,20 @@ exports.createProvider= async (req,res,next) => {
     }
 };
 
-// //@desc Delete single hospitals
-// //@route DELETE /api/v1/hospitals/:id
-// //@access Private
-// exports.deleteHospital=async (req,res,next) => {
-//     try{
-//         const hospital = await Hospital.findById(req.params.id);
-//         if(!hospital){
-//             return res.status(400).json({success:false});
-//         }
-//         await Appointment.deleteMany({hospital: req.params.id});
-//         await Hospital.deleteOne({_id: req.params.id});
+//@desc Delete Provider
+//@route DELETE /api/v1/providers/:id
+//@access Private
+exports.deleteProvider=async (req,res,next) => {
+    try{
+        const provider = await Provider.findById(req.params.id);
+        if(!provider){
+            return res.status(400).json({success:false});
+        }
+        //await Booking.deleteMany({provider: req.params.id});
+        await Provider.deleteOne({_id: req.params.id});
         
-//         res.status(200).json({success:true, data:{}});
-//     } catch(err){
-//         res.status(400).json({success:false});
-//     }
-// };
+        res.status(200).json({success:true, data:{}});
+    } catch(err){
+        res.status(400).json({success:false});
+    }
+};
