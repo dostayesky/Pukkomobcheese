@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Provider = require('../models/Provider');
+const {sendEmail} = require('../utils/sendEmail');
 
 //@desc     Get all bookings
 //@route    GET /api/v1/bookings
@@ -91,9 +92,31 @@ exports.addBooking=async (req,res,next)=>{
         if(provider.carAvaliable == 0){
             return res.status(404).json({success:false, message: "No cars available for rent at the moment"});
         }
-
         const booking = await Booking.create(req.body);
         updateAvaibleCar(req.params.providerId,-1);
+
+        // Send email confirmation
+        await sendEmail({
+            to: req.user.email,
+            subject: '🚗 Booking Confirmation - Pukkomobcheese',
+            text: `Booking confirmed for ${provider.name}`, // Fallback
+            html: `
+              <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2>✅ Booking Confirmed!</h2>
+                <p>Hello <strong>${req.user.name || 'User'}</strong>,</p>
+                <p>Your booking has been successfully created. Here are the details:</p>
+                <ul style="line-height: 1.6;">
+                  <li><strong>📅 Booking Date:</strong> ${booking.bookingDate.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}</li>
+                  <li><strong>📦 Return Date:</strong> ${booking.returnDate.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}</li>
+                  <li><strong>🚙 Provider:</strong> ${provider.name}</li>
+                </ul>
+                <p>Thank you for using <strong>Pukkomobcheese</strong>!</p>
+                <hr />
+                <small>This is an automated message. Please do not reply.</small>
+              </div>
+            `
+        });
+
         res.status(200).json({
             success: true,
             data: booking
@@ -123,6 +146,26 @@ exports.updateBooking=async (req,res,next) => {
         booking=await Booking.findByIdAndUpdate(req.params.id,req.body,{
             new:true,
             runValidators:true
+        }).populate('provider','name tel');
+        sendEmail({
+            to: req.user.email,
+            subject: '🚗 Booking Updation - Pukkomobcheese',
+            text: `Booking updatmed for ${booking.provider.name}`, // Fallback
+            html: `
+              <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2>✅ Booking Updated!</h2>
+                <p>Hello <strong>${req.user.name || 'User'}</strong>,</p>
+                <p>Your booking has been successfully updated. Here are the details:</p>
+                <ul style="line-height: 1.6;">
+                  <li><strong>📅 Booking Date:</strong> ${booking.bookingDate.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}</li>
+                  <li><strong>📦 Return Date:</strong> ${booking.returnDate.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}</li>
+                  <li><strong>🚙 Provider:</strong> ${booking.provider.name}</li>
+                </ul>
+                <p>Thank you for using <strong>Pukkomobcheese</strong>!</p>
+                <hr />
+                <small>This is an automated message. Please do not reply.</small>
+              </div>
+            `
         });
 
         res.status(200).json({
@@ -150,7 +193,7 @@ exports.deleteBooking=async (req,res,next) => {
         if(booking.user.toString() !== req.user.id && req.user.role !== 'admin'){
             return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to delete this booking`});
         }
-        const oneDayInMs = 1;//24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const oneDayInMs = 24 * 60 * 60 * 1000; // 1 day in milliseconds
         const isLessThanOneDay = Date.now() - new Date(booking.createdAt).getTime() < oneDayInMs;
         let fee =  0;
         if (isLessThanOneDay) {

@@ -17,9 +17,9 @@ const cors = require('cors');
 //Load env vars
 dotenv.config({path:'./config/config.env'});
 
-//Connect to database send noti after for testing
+//Connect to database 
 connectDB().then(() => {
-    sendNoti();
+    // sendNoti(); //send noti after for testing
 });
 
 //Route files
