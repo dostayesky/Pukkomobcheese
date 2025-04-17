@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Test</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>Real-time Events</h2>
+  <pre id="log">Connecting...</pre>
+
+  <script>
+    const socket = io('http://localhost:5000'); // your backend address
+
+    socket.on('connect', () => {
+      document.getElementById('log').textContent = 'Connected: ' + socket.id + '\n';
+    });
+
+    socket.on('new_provider', (data) => {
+      document.getElementById('log').textContent += '\nNew Provider:\n' + JSON.stringify(data, null, 2);
+    });
+
+    socket.on('disconnect', () => {
+      document.getElementById('log').textContent += '\nDisconnected';
+    });
+  </script>
+</body>
+</html>
