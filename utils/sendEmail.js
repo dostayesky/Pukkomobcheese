@@ -1,7 +1,7 @@
 // utils/sendEmail.js
 const nodemailer = require("nodemailer");
 
-const sendEmail = async ({ to, subject, text ,html}) => {
+exports.sendEmail = async ({ to, subject, text ,html}) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -25,5 +25,3 @@ const sendEmail = async ({ to, subject, text ,html}) => {
     console.error("❌ Error sending email:", err);
   }
 };
-
-module.exports = sendEmail;
