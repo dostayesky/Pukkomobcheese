@@ -81,8 +81,31 @@ app.use('/api/v1/providers', providers);
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/bookings', bookings);
 
+// Create HTTP server and attach socket.io
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+    }
+});
+
+// Expose io to other files if needed
+app.set('io', io);
+
+// Socket.IO events
+io.on('connection', (socket) => {
+    console.log('New client connected:', socket.id);
+
+    socket.on('disconnect', () => {
+        console.log(`Socket ${socket.id} disconnected`);
+    });
+});
+
 const PORT=process.env.PORT || 5000;
-const server = app.listen(PORT, console.log('Server running in ', process.env.NODE_ENV, ' mode on port ', PORT));
+server.listen(PORT, console.log('Server running in ', process.env.NODE_ENV, ' mode on port ', PORT));
 
 //Handle unhandled promise rejections
 process.on('unhandledRejection',(err,promise)=>{

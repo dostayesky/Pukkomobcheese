@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-Time Providers</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <h1>Providers (Real-Time)</h1>
+  <ul id="providerList">Loading...</ul>
+
+  <script>
+    const socket = io("http://localhost:5000");
+
+    // Fetch and display providers
+    async function fetchProviders() {
+      try {
+        const res = await fetch("http://localhost:5000/api/v1/providers");
+        const data = await res.json();
+
+        const list = document.getElementById("providerList");
+        list.innerHTML = ""; // Clear current list
+
+        data.data.forEach(provider => {
+          const li = document.createElement("li");
+          li.textContent = `Name: ${provider.name}, Available Cars: ${provider.carAvaliable}`;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error("Failed to fetch providers:", err);
+      }
+    }
+
+    // Initial fetch on page load
+    fetchProviders();
+
+    // Socket.IO events
+    socket.on("connect", () => {
+      console.log("Connected to socket.io server");
+    });
+
+    // Listen for real-time update and re-fetch providers
+    socket.on("providers_updated", () => {
+      console.log("Received providers_updated event. Re-fetching...");
+      fetchProviders();
+    });
+  </script>
+</body>
+</html>
