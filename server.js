@@ -8,6 +8,8 @@ const {xss} = require('express-xss-sanitizer');
 const rateLimit = require('express-rate-limit');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
+const {sendNoti} = require('./utils/sendNoti.js');
+const cron = require('node-cron');
 
 // cors
 const cors = require('cors');
@@ -15,8 +17,10 @@ const cors = require('cors');
 //Load env vars
 dotenv.config({path:'./config/config.env'});
 
-//Connect to database
-connectDB();
+//Connect to database 
+connectDB().then(() => {
+    sendNoti(); //send noti for testing
+});
 
 //Route files
 const providers = require('./routes/providers');
@@ -54,7 +58,7 @@ const swaggerOptions={
     swaggerDefinition:{
         openapi: '3.0.0',
         info: {
-            title: 'Library API',
+            title: 'Library API',  
             version: '1.0.0',
             description: 'A simple Express VacQ API'
         },
@@ -68,6 +72,9 @@ const swaggerOptions={
     };
 const swaggerDocs=swaggerJsDoc(swaggerOptions);
 app.use('/api-docs',swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+
+//add schedule task
+cron.schedule('*/5 * * * *',sendNoti); // every five minute
 
 //Mount routers
 app.use('/api/v1/providers', providers);
