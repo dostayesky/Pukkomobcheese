@@ -27,12 +27,20 @@ const UserSchema = new mongoose.Schema({
         minlength: 6,
         select: false
     },
-        resetPasswordToken: String,
-        resetPasswordExpire: Date,
-        createdAt:{
-            type: Date,
-            default:Date.now
-        }
+    createdAt:{
+        type: Date,
+        default:Date.now
+    },
+    tel: {
+        type: String,
+        required: [true, 'Please add an telephone number'],
+        unique: true,
+        match: [
+            /^0[0-9]{9}$/,
+            "Please enter a valid Thai phone number (e.g., 0812345678)"
+          ]
+    },
+    
 });
 
 //Encrypt password suing bcrypt

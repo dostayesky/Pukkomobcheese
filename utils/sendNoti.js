@@ -2,7 +2,7 @@ const Booking = require('../models/Booking');
 const {sendEmail} = require('./sendEmail.js');
 
 exports.sendNoti = async() =>{
-    //console.log("checking");
+    console.log("⏰ running routine notification ");
     const start = new Date();
     const end = new Date(start.getTime()+(24 * 60 * 60 * 1000));
     // Find bookings within the range
