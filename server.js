@@ -19,7 +19,7 @@ dotenv.config({path:'./config/config.env'});
 
 //Connect to database 
 connectDB().then(() => {
-    // sendNoti(); //send noti after for testing
+    sendNoti(); //send noti for testing
 });
 
 //Route files

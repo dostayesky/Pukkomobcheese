@@ -96,7 +96,7 @@ exports.addBooking=async (req,res,next)=>{
         updateAvaibleCar(req.params.providerId,-1);
 
         // Send email confirmation
-        await sendEmail({
+        sendEmail({
             to: req.user.email,
             subject: '🚗 Booking Confirmation - Pukkomobcheese',
             text: `Booking confirmed for ${provider.name}`, // Fallback
@@ -132,7 +132,7 @@ exports.addBooking=async (req,res,next)=>{
 //@access   Private
 exports.updateBooking=async (req,res,next) => {
     try{
-        let booking= await Booking.findById(req.params.id);
+        let booking= await Booking.findById(req.params.id).populate('provider','name _id carAvaible');
 
         if(!booking){
             return res.status(404).json({success:false,message:`No booking with the id of ${req.params.id}`});
@@ -142,11 +142,28 @@ exports.updateBooking=async (req,res,next) => {
         if(booking.user.toString() !== req.user.id && req.user.role !== 'admin'){
             return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to update this booking`});
         }
-
+        const newProvider = req.body.providerName;
+        const oldProvider = booking.provider.name;
+        if( newProvider && oldProvider != newProvider){
+            const providerN = await Provider.findOne({name : newProvider});
+            if(!providerN){
+                return res.status(404).json({success:false,message:`No provider with the name of ${newProvider}`});
+            }
+            req.body.provider = providerN._id;
+            
+            if(providerN.carAvaliable == 0){
+                return res.status(404).json({success:false, message: "No cars available for rent at the moment"});
+            }
+            //update avaible car;
+            await Provider.findByIdAndUpdate(booking.provider._id, { $inc: { carAvaliable: 1 } });
+            await Provider.findByIdAndUpdate(providerN._id, { $inc: { carAvaliable: -1 } });
+        }
         booking=await Booking.findByIdAndUpdate(req.params.id,req.body,{
             new:true,
             runValidators:true
         }).populate('provider','name tel');
+
+
         sendEmail({
             to: req.user.email,
             subject: '🚗 Booking Updation - Pukkomobcheese',
@@ -183,27 +200,47 @@ exports.updateBooking=async (req,res,next) => {
 //@access   Private
 exports.deleteBooking=async (req,res,next) => {
     try{
-        const booking= await Booking.findById(req.params.id);
+        const booking= await Booking.findById(req.params.id)
+            .populate('user', 'name email')
+            .populate('provider', 'name phone');
 
         if(!booking){
             return res.status(404).json({success:false,message:`No booking with the id of ${req.params.id}`});
         }
 
         //Make sure user is the booking owner
-        if(booking.user.toString() !== req.user.id && req.user.role !== 'admin'){
+        
+        if(booking.user._id.toString() !== req.user.id && req.user.role !== 'admin'){
             return res.status(401).json({success:false,message:`User ${req.user.id} is not authorized to delete this booking`});
         }
-        const oneDayInMs = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        const oneDayInMs = 3*60*1000;//24 * 60 * 60 * 1000; // 1 day in milliseconds
         const isLessThanOneDay = Date.now() - new Date(booking.createdAt).getTime() < oneDayInMs;
         let fee =  0;
         if (isLessThanOneDay) {
             console.log("Less than 1 day has passed since booking was created.");
         } else {
-            fee = 200;
+            fee = 2000;
             console.log("More than 1 day has passed.");
         }
-        updateAvaibleCar(booking.provider,1);
+        
+
+        // Send cancellation email
+        sendEmail({
+            to: booking.user.email,
+            subject: '🚫 Your car booking has been cancelled',
+            text: `Hi ${booking.user.name}, your booking with ${booking.provider.name} has been cancelled. ${fee > 0 ? 'A fee of 200 THB will be charged.' : 'No cancellation fee has been applied.'}`,
+            html: `
+                <p>Hi ${booking.user.name} 👋,</p>
+                <p>We’re confirming that your booking with <strong>${booking.provider.name}</strong> has been <span style="color: red;"><strong>cancelled</strong></span>.</p>
+                <p>📅 <strong>Booking Created:</strong> ${new Date(booking.createdAt).toLocaleString('th-TH')}</p>
+                <p>💸 <strong>Cancellation Fee:</strong> ${fee > 0 ? '2000 THB (cancelled after 24 hours)' : 'None (cancelled within 24 hours)'}</p>
+                <p>☎️ For any questions, contact <strong>${booking.provider.name}</strong> at <strong>${booking.provider.phone}</strong>.</p>
+                <p>We hope to see you again soon! 🙏</p>
+            `
+        });
+
         await booking.deleteOne();
+        await updateAvaibleCar(booking.provider,1);
         
         res.status(200).json({
             success:true,
