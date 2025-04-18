@@ -92,11 +92,6 @@ app.set('io', io);
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
 
-    socket.on('join_providers_room', () => {
-        socket.join('providers_room');
-        console.log(`Socket ${socket.id} joined providers_room`);
-    });
-
     socket.on('disconnect', () => {
         console.log(`Socket ${socket.id} disconnected`);
     });

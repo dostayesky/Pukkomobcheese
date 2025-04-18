@@ -94,6 +94,10 @@ exports.addBooking=async (req,res,next)=>{
 
         const booking = await Booking.create(req.body);
         updateAvaibleCar(req.params.providerId,-1);
+
+        const io = req.app.get('io');
+        io.emit('providers_updated', 'Update Provider From Add Booking');
+
         res.status(200).json({
             success: true,
             data: booking
@@ -124,6 +128,9 @@ exports.updateBooking=async (req,res,next) => {
             new:true,
             runValidators:true
         });
+
+        const io = req.app.get('io');
+        io.emit('providers_updated', 'Update Provider From Update Booking');
 
         res.status(200).json({
             success:true,
@@ -161,6 +168,9 @@ exports.deleteBooking=async (req,res,next) => {
         }
         updateAvaibleCar(booking.provider,1);
         await booking.deleteOne();
+
+        const io = req.app.get('io');
+        io.emit('providers_updated', 'Update Provider From Dalete Booking');
         
         res.status(200).json({
             success:true,

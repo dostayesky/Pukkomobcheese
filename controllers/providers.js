@@ -105,10 +105,6 @@ exports.getProviders= async (req,res,next) => {
                 limit
             }
         }
-
-        // Join providers_room if socket is available
-        const io = req.app.get('io');
-        const socket = req.app.get('socket');
         
         res.status(200).json({success:true, count:providers.length, pagination, data:providers});
     } catch(err){
@@ -124,9 +120,7 @@ exports.createProvider= async (req,res,next) => {
         const provider = await Provider.create(req.body);
 
         const io = req.app.get('io');
-        const providers = await getAllProviders();
-        io.to('providers_room').emit('providers_updated', providers);
-        io.emit('providers_updated', providers);
+        io.emit('providers_updated', 'Create Provider');
 
         res.status(201).json({
             success:true, 
@@ -154,9 +148,7 @@ exports.updateProvider=async (req,res,next) => {
         //io.emit('update_provider', provider);
 
         const io = req.app.get('io');
-        const providers = await getAllProviders();
-        io.to('providers_room').emit('providers_updated', providers);
-        io.emit('providers_updated', providers);
+        io.emit('providers_updated', 'Update Provider');
 
         res.status(200).json({success:true, data: provider});
     } catch(err){
@@ -178,9 +170,7 @@ exports.deleteProvider=async (req,res,next) => {
         await Provider.deleteOne({_id: req.params.id});
         
         const io = req.app.get('io');
-        const providers = await getAllProviders();
-        io.to('providers_room').emit('providers_updated', providers);
-        io.emit('providers_updated', providers);
+        io.emit('providers_updated', 'Delete Provider');
 
         res.status(200).json({success:true, data:{}});
     } catch(err){

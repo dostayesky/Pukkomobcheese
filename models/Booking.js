@@ -18,6 +18,9 @@ const BookingSchema = new mongoose.Schema({
     createdAt:{
         type: Date,
         default: Date.now
+    },
+    returnDate:{
+        type: Date
     }
 });
 
