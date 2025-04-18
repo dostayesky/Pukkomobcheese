@@ -1,6 +1,42 @@
 const Booking = require('../models/Booking');
 const Provider = require('../models/Provider');
 
+const getAllProviders = async (queryParams = {}) => {
+    let query;
+
+    // Clone and prepare query params
+    const reqQuery = { ...queryParams };
+    reqQuery.carAvaliable = { gt: 0 };
+    const removeFields = ['select', 'sort', 'page', 'limit'];
+    removeFields.forEach(param => delete reqQuery[param]);
+
+    let queryStr = JSON.stringify(reqQuery);
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+    query = Provider.find(JSON.parse(queryStr));
+
+    if (queryParams.select) {
+        const fields = queryParams.select.split(',').join(' ');
+        query = query.select(fields);
+    }
+
+    if (queryParams.sort) {
+        const sortBy = queryParams.sort.split(',').join(' ');
+        query = query.sort(sortBy);
+    } else {
+        query = query.sort('-createdAt');
+    }
+
+    const page = parseInt(queryParams.page, 10) || 1;
+    const limit = parseInt(queryParams.limit, 10) || 25;
+    const startIndex = (page - 1) * limit;
+
+    query = query.skip(startIndex).limit(limit);
+
+    const providers = await query;
+    return providers;
+};
+
 //@desc Get all Providers
 //@route GET 
 //@access Public
@@ -82,6 +118,10 @@ exports.getProviders= async (req,res,next) => {
 exports.createProvider= async (req,res,next) => {
     try{
         const provider = await Provider.create(req.body);
+
+        const io = req.app.get('io');
+        io.emit('providers_updated', 'Create Provider');
+
         res.status(201).json({
             success:true, 
             data:provider
@@ -104,6 +144,12 @@ exports.updateProvider=async (req,res,next) => {
         if(!provider){
             return res.status(400).json({success:false});
         }
+
+        //io.emit('update_provider', provider);
+
+        const io = req.app.get('io');
+        io.emit('providers_updated', 'Update Provider');
+
         res.status(200).json({success:true, data: provider});
     } catch(err){
         res.status(400).json({success:false});
@@ -119,9 +165,13 @@ exports.deleteProvider=async (req,res,next) => {
         if(!provider){
             return res.status(400).json({success:false});
         }
-        //await Booking.deleteMany({provider: req.params.id});
+
+        await Booking.deleteMany({provider: req.params.id});
         await Provider.deleteOne({_id: req.params.id});
         
+        const io = req.app.get('io');
+        io.emit('providers_updated', 'Delete Provider');
+
         res.status(200).json({success:true, data:{}});
     } catch(err){
         res.status(400).json({success:false});
