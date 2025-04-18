@@ -92,7 +92,7 @@ exports.addBooking=async (req,res,next)=>{
         if(provider.carAvaliable == 0){
             return res.status(404).json({success:false, message: "No cars available for rent at the moment"});
         }
-        const booking = await Booking.create(req.body);
+        let booking = await Booking.create(req.body);
         updateAvaibleCar(req.params.providerId,-1);
 
         // Send email confirmation
@@ -118,7 +118,7 @@ exports.addBooking=async (req,res,next)=>{
         });
         const io = req.app.get('io');
         io.emit('providers_updated', 'Update Provider From Add Booking');
-
+        booking.provider = provider;
         res.status(200).json({
             success: true,
             data: booking
