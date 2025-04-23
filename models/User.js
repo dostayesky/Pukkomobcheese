@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
         required: [true, 'Please add an telephone number'],
         unique: true,
         match: [
-            /^0[0-9]{9}$/,
+            /^0[0-9]{10}$/,
             "Please enter a valid Thai phone number (e.g., 0812345678)"
           ]
     },
