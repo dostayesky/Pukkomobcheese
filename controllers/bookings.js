@@ -158,8 +158,8 @@ exports.updateBooking=async (req,res,next) => {
                 return res.status(404).json({success:false, message: "No cars available for rent at the moment"});
             }
             //update avaible car;
-            await Provider.findByIdAndUpdate(booking.provider._id, { $inc: { carAvaliable: 1 } });
-            await Provider.findByIdAndUpdate(providerN._id, { $inc: { carAvaliable: -1 } });
+            await updateAvaibleCar(providerN._id,-1);
+            await updateAvaibleCar(booking.provider._id,1);
         }
         booking=await Booking.findByIdAndUpdate(req.params.id,req.body,{
             new:true,
@@ -263,8 +263,7 @@ exports.deleteBooking=async (req,res,next) => {
 };
 
 updateAvaibleCar = async(provider_id,amount) => {
-    let {carAvaliable} = await Provider.findById(provider_id);
-    carAvaliable += amount;
-    await Provider.findByIdAndUpdate(provider_id,{carAvaliable});
+    
+    await Provider.findByIdAndUpdate(provider_id,{ $inc: { carAvaliable: amount } });
     return;
 }
