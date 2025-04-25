@@ -118,6 +118,7 @@ exports.addBooking=async (req,res,next)=>{
         });
         const io = req.app.get('io');
         io.emit('providers_updated', 'Update Provider From Add Booking');
+        --provider.carAvaliable;
         booking.provider = provider;
         res.status(200).json({
             success: true,
