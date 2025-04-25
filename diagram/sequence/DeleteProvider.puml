@@ -1,0 +1,31 @@
+@startuml Delete Provider (DELETE)
+
+header Car Rental Sequence Diagram
+footer Page %page% of %lastpage%
+title "Delete Provider (DELETE)"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:providers" as routerProviders
+participant "<<controllers>>\n:providers" as controllersProviders
+participant "<<model>>\n:Provider" as modelProvider
+participant "<<model>>\n:Booking" as modelBooking
+database "<<MongoDB>>\n:providers" as ProvidersDatabase
+database "<<MongoDB>>\n:bookings" as BookingsDatabase
+
+client -> server ++ : req.delete('/api/v1/providers/:id')
+server -> routerProviders ++ : app.use('/api/v1/providers', providers)
+routerProviders -> controllersProviders ++ : deleteProvider()
+controllersProviders -> modelProvider ++ : create(req.body)
+modelProvider -> ProvidersDatabase ++ : ProviderSchema
+ProvidersDatabase --> modelProvider -- : provider
+controllersProviders <-- modelProvider --:provider
+
+controllersProviders -> modelBooking ++ : create(req.body)
+modelBooking -> BookingsDatabase ++ : BookingSchema
+BookingsDatabase --> modelBooking -- : booking
+controllersProviders <-- modelBooking --:booking
+
+controllersProviders -> client -- : response
+
+@enduml

@@ -1,0 +1,30 @@
+@startuml Update Booking (PUT)
+
+header Car Rental Sequence Diagram
+footer Page %page% of %lastpage%
+title "Update Booking (PUT)"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:bookings" as routerBookings
+participant "<<controllers>>\n:bookings" as controllersBookings
+participant "<<model>>\n:Booking" as modelBooking
+participant "<<model>>\n:Provider" as modelProvider
+database "<<MongoDB>>\n:bookings" as BookingsDatabase
+database "<<MongoDB>>\n:providers" as ProvidersDatabase
+
+client -> server ++ : req.put('/api/v1/bookings/:id')
+server -> routerBookings ++ : app.use('/api/v1/bookings', bookings)
+routerBookings -> controllersBookings ++ : updateBooking()
+controllersBookings -> modelBooking ++ : findById(id).populate('provider')
+modelBooking -> BookingsDatabase ++ : lookup booking
+BookingsDatabase --> modelBooking -- : booking
+controllersBookings -> modelProvider ++ : findOne({ name: newProvider })
+modelProvider -> ProvidersDatabase ++ : lookup new provider
+ProvidersDatabase --> modelProvider -- : newProvider
+controllersBookings -> modelBooking ++ : findByIdAndUpdate()
+modelBooking -> BookingsDatabase ++ : update booking
+BookingsDatabase --> modelBooking -- : updated booking
+controllersBookings -> client -- : response
+
+@enduml

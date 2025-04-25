@@ -1,0 +1,45 @@
+@startuml CarRentalSystemUseCase
+title Car Rental System Use Case Diagram
+left to right direction
+
+actor "User" as user
+
+rectangle "Car Rental System" {
+    usecase "Register" as UC_Register
+    usecase "Login" as UC_Login
+    usecase "Logout" as UC_Logout
+    usecase "View All Car Providers" as UC_ViewProviders
+    usecase "Book Car (max 3)" as UC_BookCar
+    usecase "View Their Bookings" as UC_ViewBookings
+    usecase "Edit Their Booking" as UC_EditBooking
+    usecase "Delete Their Booking" as UC_DeleteBooking
+
+    usecase "Book Car" as UC_AdminBookCar
+    usecase "View All Bookings" as UC_AdminView
+    usecase "Edit Any Booking" as UC_AdminEdit
+    usecase "Delete Any Booking" as UC_AdminDelete
+}
+
+actor "Admin" as admin
+
+' User interactions
+user -- UC_Register
+user -- UC_Login
+user -- UC_Logout
+user -- UC_ViewProviders
+user -- UC_BookCar
+user -- UC_ViewBookings
+user -- UC_EditBooking
+user -- UC_DeleteBooking
+
+' Admin interactions
+UC_Register -- admin 
+UC_Login -- admin 
+UC_Logout -- admin
+UC_ViewProviders -- admin
+UC_AdminBookCar -- admin
+UC_AdminView -- admin
+UC_AdminEdit -- admin
+UC_AdminDelete -- admin
+
+@enduml

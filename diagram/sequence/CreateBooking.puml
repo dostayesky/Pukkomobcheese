@@ -1,0 +1,30 @@
+@startuml Add Booking (POST)
+
+header Car Rental Sequence Diagram
+footer Page %page% of %lastpage%
+title "Add Booking (POST)"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:bookings" as routerBookings
+participant "<<controllers>>\n:bookings" as controllersBookings
+participant "<<model>>\n:Booking" as modelBooking
+participant "<<model>>\n:Provider" as modelProvider
+database "<<MongoDB>>\n:bookings" as BookingsDB
+database "<<MongoDB>>\n:providers" as ProvidersDB
+
+client -> server ++ : req.post('/api/v1/providers/:providerId/bookings')
+server -> routerBookings ++ : app.use('/api/v1/bookings', bookings)
+routerBookings -> controllersBookings ++ : addBooking(req)
+controllersBookings -> modelProvider ++ : Provider.findById(providerId)
+modelProvider -> ProvidersDB ++ : Find provider by ID
+ProvidersDB --> modelProvider -- : provider
+controllersBookings -> modelBooking ++ : Booking.find({ user: req.user.id })
+modelBooking -> BookingsDB ++ : Check existing bookings
+BookingsDB --> modelBooking -- : userBookings
+controllersBookings -> modelBooking ++ : Booking.create(req.body)
+modelBooking -> BookingsDB ++ : Insert new booking
+BookingsDB --> modelBooking -- : createdBooking
+controllersBookings -> client -- : response
+
+@enduml
