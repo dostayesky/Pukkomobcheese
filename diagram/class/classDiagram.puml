@@ -1,0 +1,66 @@
+@startuml
+left to right direction
+
+package "CarRental" {
+
+  class "<<Application>>\nCarRentalService" as App {}
+
+  class "<<Resource>>\nAuth" as ResourceAuth {
+    <<POST>> +/register
+    <<POST>> +/login
+    <<GET>> +/me
+    <<GET>> +/logout
+  }
+
+  class "<<Resource>>\nProviders" as ResourceProviders {
+    <<GET>> +getProviders()
+    <<POST>> +createProvider()
+    <<PUT>> +updateProvider()
+    <<DELETE>> +deleteProvider()
+  }
+
+  class "<<Resource>>\nBookings" as ResourceBookings {
+    <<GET>> +getBookings()
+    <<POST>> +addBooking()
+    <<GET>> +getBooking()
+    <<PUT>> +updateBooking()
+    <<DELETE>> +deleteBooking()
+  }
+
+  class "<<Representation>>\nUser" as RepresentationUser {
+    -name
+    -email
+    -password
+    -tel
+    -role
+    -createdAt
+  }
+
+  class "<<Representation>>\nProvider" as RepresentationProvider {
+    -name
+    -address
+    -tel
+    -carAvaliable
+  }
+
+  class "<<Representation>>\nBooking" as RepresentationBooking {
+    -bookingDate
+    -user
+    -provider
+    -returnDate
+    -createdAt
+  }
+}
+
+App ..> ResourceAuth : "/auth\n<<Path>>"
+App ..> ResourceProviders : "/providers\n<<Path>>"
+App ..> ResourceBookings : "/bookings\n<<Path>>"
+ResourceProviders ..> ResourceBookings : "/:providerId/bookings\n<<Nested Path>>"
+
+ResourceAuth ..> RepresentationUser : "<<uses>>"
+ResourceBookings ..> RepresentationBooking : "<<uses>>"
+RepresentationBooking ..> RepresentationUser : "<<ref>>"
+RepresentationBooking ..> RepresentationProvider : "<<ref>>"
+ResourceProviders ..> RepresentationProvider : "<<uses>>"
+
+@enduml
